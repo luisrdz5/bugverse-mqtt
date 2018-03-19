@@ -1,0 +1,34 @@
+{
+  "name": "bugverse-mqtt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A simple IOT Platform - MQTT Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node server.js",
+    "start-dev": "DEBUG=bugverse:* nodemon server.js",
+    "lint": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luisrdz5/bugverse-mqtt.git"
+  },
+  "author": "Luis Antonio Rodriguez Garcia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luisrdz5/bugverse-mqtt/issues"
+  },
+  "homepage": "https://github.com/luisrdz5/bugverse-mqtt#readme",
+  "dependencies": {
+    "chalk": "^2.3.2",
+    "debug": "^3.1.0",
+    "mosca": "^2.8.0",
+    "redis": "^2.8.0",
+    "zeromq": "^4.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.2",
+    "standard": "^11.0.1",
+    "zmq": "^2.15.3"
+  }
+}
