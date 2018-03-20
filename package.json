@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/luisrdz5/bugverse-mqtt#readme",
   "dependencies": {
+    "bugverse-db": "file:../bugverse-db",
     "chalk": "^2.3.2",
     "debug": "^3.1.0",
     "mosca": "^2.8.0",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "nodemon": "^1.17.2",
+    "sequelize": "^4.37.3",
     "standard": "^11.0.1",
     "zmq": "^2.15.3"
   }
