@@ -1,5 +1,11 @@
 'use strict'
 
+// codigo para probar  el alta
+/*
+mqtt pub -t 'agent/message' -m '{"agent": { "uuid" : "yyx", "name" : "test", "username": "bug", "pid":10, "hostname": "bot"}, "metrics": [{ "type": "memory", "value": "1001"}, {"type": "temp", "value": "33"}]}'
+
+*/
+
 const debug = require('debug')('bugverse:mqtt')
 const mosca = require('mosca')
 const redis = require('redis')
@@ -37,45 +43,23 @@ server.on('clientConnected', client => {
   debug(`Client Connected: ${client.id}`)
   clients.set(client.id, null)
 })
-server.on('clientDisconnected', async client => {
-  debug(`Client Disconnected: ${client.id}`)
-  const agent = clients.get(client.id)
 
-  if (agent) {
-    agent.connected = false
-  }
-  try {
-    await Agent.createOrUpdate(agent)
-  } catch (e) {
-    return handleError(e)
-  }
-  // Delete Agent  from Client List
-  clients.delete(client.id)
-  server.publish({
-    topic: 'agent/disconnected',
-    payload: JSON.stringify({
-      agent: {
-        uuid: agent.uuid
-      }
-    })
-  })
-  debug(`Client (${client.id}) Associated to Agent (${agent.uuid}) marked as disconnected`)
-})
 server.on('published', async (packet, client) => {
   debug(`Received: ${packet.topic}`)
   switch (packet.topic) {
     case 'agent/connected':
     case 'agent/disconnected':
-      debug(`Payload: ${packet.payload}`)
+      debug(`[agent/disconnected] Payload: ${packet.payload}`)
       break
     case 'agent/message':
-      debug(`Payload: ${packet.payload}`)
+      debug(`[agent/message] Payload: ${packet.payload}`)
       const payload = parsePayload(packet.payload)
       if (payload) {
         payload.agent.connected = true
         let agent
         try {
           agent = await Agent.createOrUpdate(payload.agent)
+          debug(`[agent/message] Se ha creado/updateado el Agente}`)
         } catch (e) {
           return handleError(e)
         }
@@ -85,7 +69,7 @@ server.on('published', async (packet, client) => {
           clients.set(client.id, agent)
           server.publish({
             topic: 'agent/connected',
-            payload: 'JSON.stringify'({
+            payload: JSON.stringify({
               agent: {
                 uuid: agent.uuid,
                 name: agent.name,
@@ -112,7 +96,33 @@ server.on('published', async (packet, client) => {
       break
   }
 
-  debug(`Payload: ${packet.payload}`)
+  debug(`[Published] Payload: ${packet.payload}`)
+})
+
+server.on('clientDisconnected', async (client) => {
+  debug(`Client Disconnected: ${client.id}`)
+  const agent = clients.get(client.id)
+  if (agent) {
+    agent.connected = false
+    try {
+      await Agent.createOrUpdate(agent)
+    } catch (e) {
+      return handleError(e)
+    }
+
+    // Delete Agent  from Client List
+    clients.delete(client.id)
+    server.publish({
+      topic: 'agent/disconnected',
+      payload: JSON.stringify({
+        agent: {
+          uuid: agent.uuid
+        }
+      })
+    })
+
+    debug(`Client (${client.id}) Associated to Agent (${agent.uuid}) marked as disconnected`)
+  }
 })
 
 server.on('ready', async () => {
@@ -127,12 +137,12 @@ server.on('ready', async () => {
 server.on('error', handleFatalError)
 
 function handleFatalError (err) {
-  console.error(`$chalk.red('[bugverse-mqtt][fatal error]') $(err.message)`)
+  console.error(`${chalk.red('[bugverse-mqtt][fatal error]')} ${err.message}`)
   console.error(err.stack)
   process.exit(1)
 }
 function handleError (err) {
-  console.error(`$chalk.red('[bugverse-mqtt][error]') $(err.message)`)
+  console.error(`$chalk.red('[bugverse-mqtt][error]') ${err.message}`)
   console.error(err.stack)
 }
 
